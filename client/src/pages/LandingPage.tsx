@@ -9,7 +9,7 @@ const FeatureCard = ({ title, description, icon }: { title: string; description:
     <CardHeader>
       <div className="flex items-center gap-3 mb-2">
         <div className="bg-primary/10 p-2 rounded-full">{icon}</div>
-        <CardTitle className="text-xl">{title}</CardTitle>
+        <CardTitle className="text-xl relative after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-300 hover:after:w-full">{title}</CardTitle>
       </div>
     </CardHeader>
     <CardContent>
@@ -20,24 +20,25 @@ const FeatureCard = ({ title, description, icon }: { title: string; description:
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col min-w-screen justify-between bg-background text-foreground">
+    // Main container for the landing page
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Header/Navigation */}
       <header className="border-b">
         <div className="mx-auto py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">ExpenseTracker</h1>
+          <h1 className="text-2xl font-bold pl-2">ExpenseTracker</h1>
           <div className="flex items-center gap-4">
             <Link to="/login">
-              <Button variant="outline" className="relative after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-300 hover:after:w-full">Log In</Button>
+              <Button variant="outline" className="cursor-pointer border-none relative after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-300 hover:after:w-full">Log In</Button>
             </Link>
             <Link to="/signup">
-              <Button className="relative after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-300 hover:after:w-full">Sign Up</Button>
+              <Button variant="outline" className="cursor-pointer border-none relative after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-300 hover:after:w-full">Sign Up</Button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-background to-secondary/20 py-20">
+      <section className="bg-gradient-to-b from-background to-secondary/20 py-10">
         <div className="flex flex-col mx-auto text-center gap-4">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">Take Control of Your Finances</h1>
           <p className="text-xl md:text-2xl text-center text-muted-foreground mb-10 max-w-screen mx-auto">
@@ -47,10 +48,10 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20">
+      <section className="py-10">
         <div className="grid justify-items-center mx-auto">
-          <h2 className="text-3xl font-bold text-center">Features Designed for You</h2>
-          <div className="grid justify-items-center-safe md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <h2 className="text-3xl font-bold text-center pb-10">Features Designed for You</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 lg:px-10 gap-8">
             <FeatureCard
               title="Expense Tracking"
               description="Easily log your daily expenses and categorize them for better understanding of your spending habits."
@@ -86,14 +87,14 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-primary/5 py-20">
+      <section className="bg-primary/5 py-10">
         <div className="mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Start Managing Your Finances?</h2>
           <p className="text-xl text-muted-foreground mb-10 max-w-screen mx-auto">
             Join thousands of users who have taken control of their financial future with ExpenseTracker.
           </p>
           <Link to="/signup">
-            <Button size="lg" className="text-lg px-8">Create Free Account</Button>
+            <Button size="lg" className="text-lg px-8 cursor-pointer">Create Free Account</Button>
           </Link>
         </div>
       </section>
@@ -103,11 +104,6 @@ const LandingPage: React.FC = () => {
         <div className="mx-auto py-6">
           <div className="flex flex-col md:flex-row justify-around items-center">
             <p className="text-muted-foreground">© {new Date().getFullYear()} ExpenseTracker. All rights reserved.</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <a href="#" className="text-muted-foreground hover:text-foreground">Terms</a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">Privacy</a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">Help</a>
-            </div>
           </div>
         </div>
       </footer>
