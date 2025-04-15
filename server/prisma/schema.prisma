@@ -1,6 +1,8 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -8,37 +10,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model categories {
-  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String?    @db.Uuid
-  name          String
-  monthly_limit Decimal?   @db.Decimal(10, 2)
-  created_at    DateTime?  @default(now()) @db.Timestamp(6)
-  users         users?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  expenses      expenses[]
-
-  @@unique([user_id, name])
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  expenses  Expense[]
+  categories Category[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model expenses {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id      String?     @db.Uuid
-  category_id  String?     @db.Uuid
-  title        String
-  amount       Decimal     @db.Decimal(10, 2)
-  expense_date DateTime    @db.Date
-  created_at   DateTime?   @default(now()) @db.Timestamp(6)
-  categories   categories? @relation(fields: [category_id], references: [id], onUpdate: NoAction)
-  users        users?      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  color       String?    // Optional color for UI display
+  monthlyLimit Decimal?   @db.Decimal(10, 2) // Optional monthly spending limit
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([name, userId]) // Prevent duplicate category names for the same user
+  @@index([userId])
 }
 
-model users {
-  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
-  email         String       @unique
-  password_hash String
-  created_at    DateTime?    @default(now()) @db.Timestamp(6)
-  categories    categories[]
-  expenses      expenses[]
+model Expense {
+  id          String     @id @default(uuid())
+  title       String
+  amount      Decimal    @db.Decimal(10, 2)
+  date        DateTime
+  notes       String?
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([date])
 }
