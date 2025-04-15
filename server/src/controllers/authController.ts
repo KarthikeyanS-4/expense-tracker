@@ -2,11 +2,24 @@ import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { z } from "zod";
 
 const prisma = new PrismaClient();
 
+// Validation schemas
+const registerSchema = z.object({
+  name: z.string().min(2).max(50),
+  email: z.string().email(),
+  password: z.string().min(6).max(100)
+});
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6).max(100)
+});
+
 // Helper to generate JWT token
-const generateToken = (userId: number): string => {
+const generateToken = (userId: string): string => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined");
   }
@@ -19,8 +32,8 @@ const generateToken = (userId: number): string => {
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Validate request body
-    const validatedData = req.body;
-    
+    const validatedData = registerSchema.parse(req.body);
+    console.log(validatedData);
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: validatedData.email }
@@ -46,11 +59,11 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         // Create default categories for new users
         categories: {
           create: [
-            { name: "Food", monthlyLimit: 500 },
-            { name: "Transport", monthlyLimit: 200 },
-            { name: "Rent", monthlyLimit: 1000 },
-            { name: "Utilities", monthlyLimit: 150 },
-            { name: "Entertainment", monthlyLimit: 200 }
+            { name: "Food", monthlyLimit: 500, color: "#FF5733" },
+            { name: "Transport", monthlyLimit: 200, color: "#33FF57" },
+            { name: "Rent", monthlyLimit: 1000, color: "#3357FF" },
+            { name: "Utilities", monthlyLimit: 150, color: "#F3FF33" },
+            { name: "Entertainment", monthlyLimit: 200, color: "#FF33F3" }
           ]
         }
       }
@@ -78,7 +91,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Validate request body
-    const validatedData = req.body;
+    const validatedData = loginSchema.parse(req.body);
     
     // Check if user exists
     const user = await prisma.user.findUnique({
@@ -90,6 +103,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         success: false, 
         message: "Invalid credentials" 
       });
+      return;
     }
     
     // Check password
@@ -100,6 +114,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         success: false, 
         message: "Invalid credentials" 
       });
+      return;
     }
     
     // Generate token
@@ -136,7 +151,7 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
     });
     
     if (!user) {
-      res.status(404).json({ 
+      return res.status(404).json({ 
         success: false, 
         message: "User not found" 
       });

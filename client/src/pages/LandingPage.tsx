@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Feature card component for the landing page
@@ -33,6 +34,7 @@ const LandingPage: React.FC = () => {
             <Link to="/signup">
               <Button variant="outline" className="cursor-pointer border-none relative after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-300 hover:after:w-full">Sign Up</Button>
             </Link>
+            <ModeToggle />
           </div>
         </div>
       </header>

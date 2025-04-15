@@ -74,7 +74,9 @@ const AuthPage: React.FC = () => {
       });
 
       // Assume token is in response.data.token
-      localStorage.setItem("authToken", response.data.token);
+      console.log("Login response:", response.data);
+      localStorage.setItem("auth-token", response.data.data.token);
+      console.log("Token stored in localStorage:", localStorage.getItem("auth-token"));
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
@@ -100,7 +102,7 @@ const AuthPage: React.FC = () => {
       });
 
       // Assume token is in response.data.token
-      localStorage.setItem("authToken", response.data.token);
+      localStorage.setItem("auth-token", response.data.token);
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Signup error:", error);
