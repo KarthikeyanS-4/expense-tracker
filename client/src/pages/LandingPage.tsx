@@ -20,7 +20,7 @@ const FeatureCard = ({ title, description, icon }: { title: string; description:
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col min-w-screen gap-4 bg-background text-foreground">
+    <div className="min-h-screen flex flex-col min-w-screen justify-between bg-background text-foreground">
       {/* Header/Navigation */}
       <header className="border-b">
         <div className="mx-auto py-4 flex justify-between items-center">
@@ -43,22 +43,14 @@ const LandingPage: React.FC = () => {
           <p className="text-xl md:text-2xl text-center text-muted-foreground mb-10 max-w-screen mx-auto">
             Track expenses, set budgets, and achieve your financial goals with our simple and powerful expense tracking tool.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/signup">
-              <Button size="lg" className="text-lg px-8 cursor-pointer">Get Started</Button>
-            </Link>
-            <Link to="/login">
-              <Button size="lg" variant="outline" className="text-lg px-8 cursor-pointer">Log In</Button>
-            </Link>
-          </div>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="py-20">
-        <div className="grid mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Features Designed for You</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid justify-items-center mx-auto">
+          <h2 className="text-3xl font-bold text-center">Features Designed for You</h2>
+          <div className="grid justify-items-center-safe md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard
               title="Expense Tracking"
               description="Easily log your daily expenses and categorize them for better understanding of your spending habits."
@@ -109,7 +101,7 @@ const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="mt-auto border-t">
         <div className="mx-auto py-6">
-          <div className="flex flex-col md:flex-row justify-center items-center gap-5">
+          <div className="flex flex-col md:flex-row justify-around items-center">
             <p className="text-muted-foreground">© {new Date().getFullYear()} ExpenseTracker. All rights reserved.</p>
             <div className="flex gap-6 mt-4 md:mt-0">
               <a href="#" className="text-muted-foreground hover:text-foreground">Terms</a>
