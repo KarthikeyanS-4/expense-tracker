@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Front-end service (e.g., React, Angular, etc.)
+  client:
+    build:
+      context: ./client  # Path to the front-end Dockerfile
+      dockerfile: Dockerfile # Optional: only needed if the Dockerfile has a different name
+    container_name: et-client
+    ports:
+      - "4173:4173"  # Adjust port as needed
+    depends_on:
+      - server
+ 
+  # Back-end service (e.g., Node.js, Python, etc.)
+  server:
+    build:
+      context: ./server # Path to the back-end Dockerfile
+      dockerfile: Dockerfile # Optional: only needed if the Dockerfile has a different name
+    container_name: et-server
+    ports:
+      - "5000:5000"  # Adjust port as needed
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=${PORT}
+    depends_on:
+      - postgres
+
+  # PostgreSQL database service
+  postgres:
+    image: postgres:15
+    container_name: et-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-etdb}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

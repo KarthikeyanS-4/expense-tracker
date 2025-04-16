@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch category budget summary for current month
       const categorySummaryResponse = await axios.get(
@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
           },
         }
       );
-      
+
       // Fetch expense summary data (pie chart and line chart)
       const expenseSummaryResponse = await axios.get(
         `${API_URL}/expenses/summary?period=${periodFilter}`,
@@ -109,9 +109,12 @@ const Dashboard: React.FC = () => {
           },
         }
       );
-      
+
       setCategorySummary(categorySummaryResponse.data.data);
       setExpenseSummary(expenseSummaryResponse.data.data);
+
+      console.log("Category Summary:", categorySummaryResponse.data.data);
+      console.log("Expense Summary:", expenseSummaryResponse.data.data);
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       setError(
@@ -159,7 +162,19 @@ const Dashboard: React.FC = () => {
   // Format date label for time series chart
   const formatDateLabel = (dateStr: string) => {
     if (periodFilter === "year") {
-      return format(new Date(dateStr + "-01"), "MMM yyyy");
+      // Extract the year from dateStr (assuming it's in the format "YYYY-MM-DD")
+      const year = dateStr.split("-")[0]; // This will give you "2025" from "2025-04-16"
+
+      // Create a new Date object for the first day of the year
+      const startOfYear = new Date(`${year}-01-01`);
+
+      if (isNaN(startOfYear.getTime())) {
+        console.error("Invalid date string:", dateStr);
+        return null; // Or handle appropriately
+      }
+
+      // Format the date to "MMM yyyy"
+      return format(startOfYear, "MMM yyyy");
     }
     return format(new Date(dateStr), "d MMM");
   };
@@ -211,7 +226,7 @@ const Dashboard: React.FC = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">DashBoard</h1>
             <p className="text-muted-foreground">
               Overview of your financial activities
             </p>
@@ -331,7 +346,7 @@ const Dashboard: React.FC = () => {
                         <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                         <XAxis
                           dataKey="period"
-                          tickFormatter={formatDateLabel}
+                          tickFormatter={(value: string) => formatDateLabel(value) ?? ""}
                           angle={-45}
                           textAnchor="end"
                           tick={{ fontSize: 12 }}
@@ -342,7 +357,7 @@ const Dashboard: React.FC = () => {
                         <Line
                           type="monotone"
                           dataKey="amount"
-                          stroke="hsl(var(--primary))"
+                          stroke="#8884d8"
                           strokeWidth={2}
                           dot={false}
                           activeDot={{ r: 6 }}
@@ -435,42 +450,40 @@ const Dashboard: React.FC = () => {
 
               {/* Category Budget Cards */}
               {categorySummary.map((category) => (
-                <Card 
-                  key={category.id} 
+                <Card
+                  key={category.id}
                   className={
-                    category.status === "red" 
-                      ? "border-destructive" 
-                      : category.status === "yellow" 
-                      ? "border-yellow-500" 
-                      : ""
+                    category.status === "red"
+                      ? "border-destructive"
+                      : category.status === "yellow"
+                        ? "border-yellow-500"
+                        : ""
                   }
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color || "#ccc" }} 
+                        <div
+                          className="w-3 h-3 rounded-full"
                         />
                         <CardTitle className="text-sm font-medium">
                           {category.name}
                         </CardTitle>
                       </div>
                       {category.status && (
-                        <div 
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            category.status === "red" 
-                              ? "bg-destructive/10 text-destructive" 
-                              : category.status === "yellow" 
-                              ? "bg-yellow-500/10 text-yellow-700" 
-                              : "bg-green-500/10 text-green-700"
-                          }`}
+                        <div
+                          className={`text-xs px-2 py-1 rounded-full ${category.status === "red"
+                              ? "bg-destructive/10 text-destructive"
+                              : category.status === "yellow"
+                                ? "bg-yellow-500/10 text-yellow-700"
+                                : "bg-green-500/10 text-green-700"
+                            }`}
                         >
-                          {category.status === "red" 
-                            ? "Over Budget" 
-                            : category.status === "yellow" 
-                            ? "Warning" 
-                            : "Good"
+                          {category.status === "red"
+                            ? "Over Budget"
+                            : category.status === "yellow"
+                              ? "Warning"
+                              : "Good"
                           }
                         </div>
                       )}
@@ -492,13 +505,12 @@ const Dashboard: React.FC = () => {
                         <div className="flex items-center">
                           <Progress
                             value={category.percentage || 0}
-                            className={`h-2 ${
-                              category.status === "red" 
-                                ? "bg-destructive/30" 
-                                : category.status === "yellow" 
-                                ? "bg-yellow-500/30" 
-                                : "bg-green-500/30"
-                            }`}
+                            className={`h-2 ${category.status === "red"
+                                ? "bg-destructive/30"
+                                : category.status === "yellow"
+                                  ? "bg-yellow-500/30"
+                                  : "bg-green-500/30"
+                              }`}
                           />
                         </div>
                         <div className="text-xs mt-1 text-right">

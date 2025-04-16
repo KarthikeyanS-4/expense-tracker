@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,6 @@ import {
   Home,
   BarChart3,
   Receipt,
-  User,
   LogOut,
   Menu,
   X
@@ -14,7 +13,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/mode-toggle";
-// import { useAuth } from "../context/AuthContext"; // You'll need to create this auth hook
+import axios from "../api/axios"
+import { useAuth } from "../context/AuthContext"; // You'll need to create this auth hook
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -22,13 +22,44 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();
+  const { token } = useAuth();
+  interface UserData {
+    name?: string;
+    email?: string;
+  }
+  
+  const [userData, setUserData] = useState<UserData | null>(null); // Placeholder for user data
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // const { user, logout } = useAuth(); // Uncomment when you have the auth hook
+  const { logout } = useAuth(); // Uncomment when you have the auth hook
 
   // Placeholder user data, replace with actual user data from auth context
+
+  const fetchCurrentUser = async (token: string) => {
+    try {
+      const response = await axios.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUserData(response.data.data);
+    } catch (error: any) {
+      console.error("Fetch current user error:", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchCurrentUser(token);
+    }
+  }, [token]);
+
+  // Usage example:
+  // const userData = await fetchCurrentUser(token);
+
   const user = {
-    name: "John Doe",
-    email: "john@example.com",
+    name: userData?.name || "User",
+    email: userData?.email || "",
   };
 
   const menuItems = [
@@ -46,17 +77,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       title: "Categories",
       href: "/categories",
       icon: <BarChart3 className="h-5 w-5" />,
-    },
-    {
-      title: "Profile",
-      href: "/profile",
-      icon: <User className="h-5 w-5" />,
-    },
+    }
   ];
 
   const handleLogout = () => {
     // Implement logout logic here
-    // logout();
+    logout();
   };
 
   return (
@@ -66,9 +92,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="p-6 border-b">
           <h2 className="text-2xl font-bold">Expense Tracker</h2>
         </div>
-        
+
         <div className="flex-1 py-6 px-4">
-          <nav className="space-y-1">
+          <nav className="flex flex-col space-y-3">
             {menuItems.map((item) => (
               <Link
                 key={item.href}
@@ -86,7 +112,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             ))}
           </nav>
         </div>
-        
+
         <div className="p-4 border-t">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
@@ -133,7 +159,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               <X className="h-5 w-5" />
             </Button>
           </div>
-          
+
           <div className="flex-1 py-6 px-4">
             <nav className="space-y-1">
               {menuItems.map((item) => (
@@ -154,7 +180,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               ))}
             </nav>
           </div>
-          
+
           <div className="p-4 border-t">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
@@ -186,7 +212,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <header className="md:hidden h-16 flex items-center justify-center border-b">
           <h1 className="text-xl font-bold">Expense Tracker</h1>
         </header>
-        
+
         {/* Content Area */}
         <main className="flex-1 overflow-auto p-4 md:p-6">
           {children}

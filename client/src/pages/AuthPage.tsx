@@ -41,7 +41,7 @@ const AuthPage: React.FC = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const { isAuthenticated, login  } = useAuth();
+  const { isAuthenticated, login } = useAuth();
 
   // Determine which tab to show based on the URL path
   const defaultTab = location.pathname === "/signup" ? "signup" : "login";
@@ -68,7 +68,7 @@ const AuthPage: React.FC = () => {
     if (isAuthenticated) {
       navigate("/dashboard");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   const onSubmitLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
@@ -81,7 +81,8 @@ const AuthPage: React.FC = () => {
       });
 
       // Assume token is in response.data.token
-      login(response.data.data.token);
+      login(response.data.data.token, response.data.data.id);
+      console.log(response.data.data);
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
@@ -107,7 +108,7 @@ const AuthPage: React.FC = () => {
       });
 
       // Assume token is in response.data.token
-      login(response.data.data.token);
+      login(response.data.data.token, response.data.data.id);
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Signup error:", error);

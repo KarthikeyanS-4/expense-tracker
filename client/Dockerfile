@@ -1,8 +1,8 @@
 FROM node:22
  
-WORKDIR /web
+WORKDIR /client
  
-COPY /package*.json /web/
+COPY /package*.json /client/
  
 RUN npm install
  

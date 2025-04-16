@@ -7,6 +7,6 @@ const router = Router();
 // Authentication routes
 router.post("/signup", register);
 router.post("/login", login);
-// router.get("/me", authenticate, getCurrentUser);
+router.get("/me", authenticate, getCurrentUser);
 
 export default router;
