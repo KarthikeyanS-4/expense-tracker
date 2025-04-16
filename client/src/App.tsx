@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider"
-import { ProtectedRoute } from "./components/ui/ProtectedRoutes"; // Adjust path if needed
+import { ProtectedRoute } from "./components/ProtectedRoutes"; // Adjust path if needed
 import LandingPage from "./pages/LandingPage"; // Adjust path if needed
 import { AuthProvider } from "./context/AuthContext"; // Adjust path if needed
 import AuthPage from "./pages/AuthPage"; // Placeholder for your signup component

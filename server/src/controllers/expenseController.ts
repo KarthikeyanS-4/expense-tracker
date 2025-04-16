@@ -405,7 +405,7 @@ export const getExpensesSummary = async (req: Request, res: Response, next: Next
           TO_CHAR(e.date, 'YYYY-MM-DD') AS "period",
           SUM(CAST(e.amount AS DECIMAL(10,2))) AS "amount"
         FROM "Expense" e
-        WHERE e.user_id = ${req.user.userId}
+        WHERE e."userId" = ${req.user.userId}
         AND e.date >= ${startDate}
         AND e.date <= ${today}
         GROUP BY TO_CHAR(e.date, 'YYYY-MM-DD')
@@ -418,7 +418,7 @@ export const getExpensesSummary = async (req: Request, res: Response, next: Next
           TO_CHAR(e.date, 'YYYY-MM') AS "period",
           SUM(CAST(e.amount AS DECIMAL(10,2))) AS "amount"
         FROM "Expense" e
-        WHERE e.user_id = ${req.user.userId}
+        WHERE e."userId" = ${req.user.userId}
         AND e.date >= ${startDate}
         AND e.date <= ${today}
         GROUP BY TO_CHAR(e.date, 'YYYY-MM')

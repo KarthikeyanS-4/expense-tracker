@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { z } from "zod";
 import axios from "../api/axios";
 import { useForm } from "react-hook-form";
@@ -40,6 +41,7 @@ const AuthPage: React.FC = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const { isAuthenticated, login  } = useAuth();
 
   // Determine which tab to show based on the URL path
   const defaultTab = location.pathname === "/signup" ? "signup" : "login";
@@ -62,6 +64,11 @@ const AuthPage: React.FC = () => {
       confirmPassword: "",
     },
   });
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated]);
 
   const onSubmitLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
@@ -74,9 +81,7 @@ const AuthPage: React.FC = () => {
       });
 
       // Assume token is in response.data.token
-      console.log("Login response:", response.data);
-      localStorage.setItem("auth-token", response.data.data.token);
-      console.log("Token stored in localStorage:", localStorage.getItem("auth-token"));
+      login(response.data.data.token);
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
@@ -102,7 +107,7 @@ const AuthPage: React.FC = () => {
       });
 
       // Assume token is in response.data.token
-      localStorage.setItem("auth-token", response.data.token);
+      login(response.data.data.token);
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Signup error:", error);

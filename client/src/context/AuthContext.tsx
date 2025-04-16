@@ -1,4 +1,4 @@
-// AuthContext.tsx
+// context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface AuthContextProps {
@@ -6,12 +6,20 @@ interface AuthContextProps {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
+  authReady: boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("auth-token"));
+  const [token, setToken] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("auth-token");
+    if (storedToken) setToken(storedToken);
+    setAuthReady(true);
+  }, []);
 
   useEffect(() => {
     if (token) localStorage.setItem("auth-token", token);
@@ -25,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         token,
         login: setToken,
         logout: () => setToken(null),
+        authReady,
       }}
     >
       {children}
