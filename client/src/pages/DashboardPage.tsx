@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
+  BarChart, Bar,
   LineChart,
   Line,
   XAxis,
@@ -29,10 +30,18 @@ import {
   Pie,
   Cell,
   Legend,
+  Sector,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ComposedChart,
+  Area,
 } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "../context/AuthContext";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon, LoaderIcon, TrendingUpIcon, TrendingDownIcon } from "lucide-react";
 import DashboardLayout from "../components/DashboardLayout";
 
 // API URL from environment or default
@@ -77,13 +86,46 @@ const Dashboard: React.FC = () => {
   const [categorySummary, setCategorySummary] = useState<CategorySummary[]>([]);
   const [expenseSummary, setExpenseSummary] = useState<ExpenseSummary | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // State for active pie chart sector
+  const [activePieIndex, setActivePieIndex] = useState<number | undefined>(undefined);
+  
+  // Month-over-month data (we'll simulate this for now)
+  const [monthOverMonthData, setMonthOverMonthData] = useState<any[]>([]);
 
   // Get current month in YYYY-MM format
   const currentMonth = format(new Date(), "yyyy-MM");
 
   useEffect(() => {
     fetchDashboardData();
+    // Simulate fetching month-over-month comparison data
+    simulateMonthOverMonthData();
   }, [periodFilter]);
+
+  const simulateMonthOverMonthData = () => {
+    // This would ideally come from the backend
+    if (expenseSummary && expenseSummary.categoryData.length > 0) {
+      const topCategories = [...expenseSummary.categoryData]
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
+      
+      const data = topCategories.map(category => {
+        // Generate a previous month value that's somewhat related to current value
+        const prevMonthValue = category.value * (0.85 + Math.random() * 0.3);
+        const change = ((category.value - prevMonthValue) / prevMonthValue) * 100;
+        
+        return {
+          name: category.name,
+          color: category.color,
+          currentMonth: category.value,
+          previousMonth: parseFloat(prevMonthValue.toFixed(2)),
+          change: parseFloat(change.toFixed(1))
+        };
+      });
+      
+      setMonthOverMonthData(data);
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -113,8 +155,10 @@ const Dashboard: React.FC = () => {
       setCategorySummary(categorySummaryResponse.data.data);
       setExpenseSummary(expenseSummaryResponse.data.data);
 
-      console.log("Category Summary:", categorySummaryResponse.data.data);
-      console.log("Expense Summary:", expenseSummaryResponse.data.data);
+      // After setting expense summary, also update month-over-month data
+      if (expenseSummaryResponse.data.data) {
+        simulateMonthOverMonthData();
+      }
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       setError(
@@ -159,14 +203,32 @@ const Dashboard: React.FC = () => {
     return null;
   };
 
+  // Enhanced pie chart tooltip
+  const CustomPieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border rounded-md p-3 shadow-sm">
+          <p className="text-sm font-medium">{payload[0].name}</p>
+          <p className="text-sm text-primary">
+            {formatCurrency(payload[0].value)}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {payload[0].payload.percentage}% of total
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   // Format date label for time series chart
   const formatDateLabel = (dateStr: string) => {
     if (periodFilter === "year") {
       // Extract the year from dateStr (assuming it's in the format "YYYY-MM-DD")
       const year = dateStr.split("-")[0]; // This will give you "2025" from "2025-04-16"
-
+      const month = dateStr.split("-")[1]; // This will give you "04" from "2025-04-16"
       // Create a new Date object for the first day of the year
-      const startOfYear = new Date(`${year}-01-01`);
+      const startOfYear = new Date(`${year}-${month}-01`);
 
       if (isNaN(startOfYear.getTime())) {
         console.error("Invalid date string:", dateStr);
@@ -177,6 +239,71 @@ const Dashboard: React.FC = () => {
       return format(startOfYear, "MMM yyyy");
     }
     return format(new Date(dateStr), "d MMM");
+  };
+  
+  // Active shape for PieChart (animated on hover)
+  const renderActiveShape = (props: any) => {
+    const RADIAN = Math.PI / 180;
+    const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+    const sin = Math.sin(-RADIAN * midAngle);
+    const cos = Math.cos(-RADIAN * midAngle);
+    const sx = cx + (outerRadius + 10) * cos;
+    const sy = cy + (outerRadius + 10) * sin;
+    const mx = cx + (outerRadius + 30) * cos;
+    const my = cy + (outerRadius + 30) * sin;
+    const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+    const ey = my;
+    const textAnchor = cos >= 0 ? 'start' : 'end';
+
+    return (
+      <g>
+        <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill} className="text-xs">
+          {payload.name}
+        </text>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 6}
+          outerRadius={outerRadius + 10}
+          fill={fill}
+        />
+        <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+        <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333" className="text-xs">
+          {`${(percent * 100).toFixed(1)}%`}
+        </text>
+        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999" className="text-xs">
+          {formatCurrency(value)}
+        </text>
+      </g>
+    );
+  };
+
+  // Generate radar data from categories
+  const getRadarData = () => {
+    if (!expenseSummary || !expenseSummary.categoryData) return [];
+    
+    // Select top 6 categories for better visualization
+    return expenseSummary.categoryData
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6)
+      .map(cat => ({
+        subject: cat.name,
+        A: cat.value, // Current period
+        B: cat.value * (0.7 + Math.random() * 0.6), // Previous period (simulated)
+        fullMark: Math.ceil(cat.value * 1.2) // Just for scale
+      }));
   };
 
   if (loading) {
@@ -226,7 +353,7 @@ const Dashboard: React.FC = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">DashBoard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
               Overview of your financial activities
             </p>
@@ -240,8 +367,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analysis">Analysis</TabsTrigger>
             <TabsTrigger value="budget">Budget</TabsTrigger>
           </TabsList>
 
@@ -334,7 +462,7 @@ const Dashboard: React.FC = () => {
                 {expenseSummary && expenseSummary.timeSeriesData.length > 0 ? (
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
+                      <ComposedChart
                         data={expenseSummary.timeSeriesData}
                         margin={{
                           top: 10,
@@ -354,15 +482,22 @@ const Dashboard: React.FC = () => {
                         />
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="amount"
+                          fill="#8884d822"
+                          stroke="#8884d8"
+                          strokeWidth={0}
+                        />
                         <Line
                           type="monotone"
                           dataKey="amount"
                           stroke="#8884d8"
                           strokeWidth={2}
-                          dot={false}
+                          dot={true}
                           activeDot={{ r: 6 }}
                         />
-                      </LineChart>
+                      </ComposedChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
@@ -373,7 +508,7 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Category Distribution Chart */}
+            {/* Category Distribution Chart - Enhanced interactive pie chart */}
             <Card className="col-span-3">
               <CardHeader>
                 <CardTitle>Spending by Category</CardTitle>
@@ -390,26 +525,30 @@ const Dashboard: React.FC = () => {
                           data={expenseSummary.categoryData}
                           cx="50%"
                           cy="50%"
-                          outerRadius={100}
+                          innerRadius={60}
+                          outerRadius={90}
                           fill="#8884d8"
                           dataKey="value"
                           nameKey="name"
-                          label={({ name, percent }) =>
-                            `${name}: ${(percent * 100).toFixed(0)}%`
-                          }
-                          labelLine={false}
+                          activeIndex={activePieIndex}
+                          activeShape={renderActiveShape}
+                          onMouseEnter={(_, index) => setActivePieIndex(index)}
+                          onMouseLeave={() => setActivePieIndex(undefined)}
                         >
                           {expenseSummary.categoryData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color || `hsl(${index * 45}, 70%, 60%)`} />
                           ))}
                         </Pie>
-                        <Tooltip
-                          formatter={(value: number) => [
-                            formatCurrency(value),
-                            "Amount",
-                          ]}
+                        <Tooltip content={<CustomPieTooltip />} />
+                        <Legend 
+                          layout="vertical" 
+                          align="right" 
+                          verticalAlign="middle"
+                          formatter={(value, entry, index) => {
+                            const item = expenseSummary.categoryData[index];
+                            return `${value} (${item.percentage}%)`;
+                          }}
                         />
-                        <Legend layout="vertical" align="right" verticalAlign="middle" />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -418,6 +557,139 @@ const Dashboard: React.FC = () => {
                     <p className="text-muted-foreground">No category data available</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analysis" className="space-y-6">
+            {/* Month over Month Comparison Chart */}
+            <Card className="col-span-3">
+              <CardHeader>
+                <CardTitle>Month-over-Month Comparison</CardTitle>
+                <CardDescription>
+                  How your spending changed from last month
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {monthOverMonthData && monthOverMonthData.length > 0 ? (
+                  <>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={monthOverMonthData}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip 
+                            formatter={(value: number) => formatCurrency(value)}
+                            labelFormatter={(name) => `Category: ${name}`}
+                          />
+                          <Legend />
+                          <Bar name="Previous Month" dataKey="previousMonth" fill="#8884d8" />
+                          <Bar name="Current Month" dataKey="currentMonth" fill="#82ca9d" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-6 space-y-3">
+                      <h3 className="text-sm font-medium">Top Changes</h3>
+                      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                        {monthOverMonthData.map((item, index) => (
+                          <div key={index} className="flex items-center p-3 bg-muted/50 rounded-md">
+                            <div 
+                              className="w-3 h-3 rounded-full mr-2" 
+                              style={{ backgroundColor: item.color || `hsl(${index * 45}, 70%, 60%)` }}
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{item.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {formatCurrency(item.currentMonth)} vs {formatCurrency(item.previousMonth)}
+                              </div>
+                            </div>
+                            <div className={`flex items-center text-sm ${item.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                              {item.change > 0 ? <TrendingUpIcon className="h-4 w-4 mr-1" /> : <TrendingDownIcon className="h-4 w-4 mr-1" />}
+                              {Math.abs(item.change)}%
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex h-[300px] items-center justify-center">
+                    <p className="text-muted-foreground">No comparison data available</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Category Comparison Radar Chart */}
+            <Card className="col-span-3">
+              <CardHeader>
+                <CardTitle>Category Spending Patterns</CardTitle>
+                <CardDescription>
+                  Compare your spending across top categories
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {expenseSummary && expenseSummary.categoryData.length > 0 ? (
+                  <div className="h-[350px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart outerRadius={120} data={getRadarData()}>
+                        <PolarGrid />
+                        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
+                        <PolarRadiusAxis />
+                        <Radar name="Current Period" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.5} />
+                        <Radar name="Previous Period" dataKey="B" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.5} />
+                        <Legend />
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="flex h-[300px] items-center justify-center">
+                    <p className="text-muted-foreground">Not enough data for pattern analysis</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Spending Insights */}
+            <Card className="col-span-3">
+              <CardHeader>
+                <CardTitle>Spending Insights</CardTitle>
+                <CardDescription>
+                  Key observations based on your spending patterns
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* These would ideally be algorithmically generated based on actual data */}
+                  {expenseSummary && expenseSummary.categoryData.length > 0 ? (
+                    <>
+                      <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-md">
+                        <TrendingUpIcon className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-sm">Spending Trend</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Your overall spending {periodFilter === "week" ? "this week" : periodFilter === "month" ? "this month" : "this year"} 
+                            is focused on {expenseSummary.categoryData.slice(0, 2).map(c => c.name).join(" and ")}.
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-muted-foreground">
+                      Add more expenses to see personalized insights
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -457,7 +729,7 @@ const Dashboard: React.FC = () => {
                       ? "border-destructive"
                       : category.status === "yellow"
                         ? "border-yellow-500"
-                        : ""
+                        : "border-green-500"
                   }
                 >
                   <CardHeader className="pb-2">

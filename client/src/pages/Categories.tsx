@@ -39,7 +39,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { LoaderIcon, PlusIcon, Pencil, Trash2 } from "lucide-react";
+import { LoaderIcon, PlusIcon, Pencil, Trash2, PencilIcon, TrashIcon } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/context/AuthContext";
 import { useForm } from "react-hook-form";
@@ -389,19 +389,20 @@ const Categories: React.FC = () => {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
                             onClick={() => openEditDialog(category)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <PencilIcon className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
-                            className="text-destructive hover:bg-destructive/10"
                             onClick={() => openDeleteDialog(category)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <TrashIcon className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
                           </Button>
                         </div>
                       </TableCell>

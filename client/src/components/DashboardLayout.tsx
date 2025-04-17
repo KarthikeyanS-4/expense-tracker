@@ -84,7 +84,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 border-r bg-card">
         <div className="p-6 border-b">
-          <h2 className="text-2xl font-bold">Expense Tracker</h2>
+          <Link to="/" className="text-2xl font-bold cursor-pointer border-none relative after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-current after:transition-all after:duration-300 hover:after:w-full">
+            Expense Tracker
+          </Link>
         </div>
 
         <div className="flex-1 py-6 px-4">

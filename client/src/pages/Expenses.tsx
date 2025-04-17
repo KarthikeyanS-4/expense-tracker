@@ -402,7 +402,7 @@ const Expenses: React.FC = () => {
 
         {/* Filters */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader>
             <CardTitle className="text-lg">Filters</CardTitle>
           </CardHeader>
           <CardContent>
