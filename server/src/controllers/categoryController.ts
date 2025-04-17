@@ -41,14 +41,14 @@ export const getAllCategories = async (req: Request, res: Response, next: NextFu
 export const getCategoryById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    
+
     const category = await prisma.category.findUnique({
       where: {
         id,
         userId: req.user.userId
       }
     });
-    
+
     if (!category) {
       res.status(404).json({
         success: false,
@@ -56,7 +56,7 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
       });
       return;
     }
-    
+
     res.status(200).json({
       success: true,
       data: category
@@ -69,7 +69,7 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validatedData = createCategorySchema.parse(req.body);
-    
+
     // Check for duplicate category name for this user
     const existingCategory = await prisma.category.findFirst({
       where: {
@@ -77,15 +77,15 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
         userId: req.user.userId
       }
     });
-    
+
     if (existingCategory) {
       res.status(400).json({
         success: false,
         message: "You already have a category with this name"
       });
-    return;
+      return;
     }
-    
+
     const category = await prisma.category.create({
       data: {
         ...validatedData,
@@ -94,7 +94,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
         monthlyLimit: validatedData.monthlyLimit ? validatedData.monthlyLimit.toString() : null
       }
     });
-    
+
     res.status(201).json({
       success: true,
       message: "Category created successfully",
@@ -109,7 +109,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
   try {
     const { id } = req.params;
     const validatedData = updateCategorySchema.parse(req.body);
-    
+
     // Check if category exists and belongs to user
     const existingCategory = await prisma.category.findUnique({
       where: {
@@ -117,7 +117,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
         userId: req.user.userId
       }
     });
-    
+
     if (!existingCategory) {
       res.status(404).json({
         success: false,
@@ -125,7 +125,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       });
       return;
     }
-    
+
     // Check for duplicate category name for this user
     if (validatedData.name && validatedData.name !== existingCategory.name) {
       const duplicateCategory = await prisma.category.findFirst({
@@ -135,7 +135,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
           id: { not: id }
         }
       });
-      
+
       if (duplicateCategory) {
         res.status(400).json({
           success: false,
@@ -144,7 +144,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
         return;
       }
     }
-    
+
     const category = await prisma.category.update({
       where: {
         id,
@@ -153,12 +153,12 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       data: {
         ...validatedData,
         // Convert number to Decimal for database if provided
-        monthlyLimit: validatedData.monthlyLimit !== undefined 
-          ? validatedData.monthlyLimit.toString() 
+        monthlyLimit: validatedData.monthlyLimit !== undefined
+          ? validatedData.monthlyLimit.toString()
           : undefined
       }
     });
-    
+
     res.status(200).json({
       success: true,
       message: "Category updated successfully",
@@ -172,7 +172,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
 export const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    
+
     // Check if category exists and belongs to user
     const existingCategory = await prisma.category.findUnique({
       where: {
@@ -180,7 +180,7 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
         userId: req.user.userId
       }
     });
-    
+
     if (!existingCategory) {
       res.status(404).json({
         success: false,
@@ -188,14 +188,14 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
       });
       return;
     }
-    
+
     // Check if there are any expenses using this category
     const expensesCount = await prisma.expense.count({
       where: {
         categoryId: id
       }
     });
-    
+
     if (expensesCount > 0) {
       res.status(400).json({
         success: false,
@@ -203,14 +203,14 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
       });
       return;
     }
-    
+
     await prisma.category.delete({
       where: {
         id,
         userId: req.user.userId
       }
     });
-    
+
     res.status(200).json({
       success: true,
       message: "Category deleted successfully"
@@ -223,7 +223,7 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
 export const getCategorySummary = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { month } = req.query;
-    
+
     if (!month || typeof month !== 'string' || !month.match(/^\d{4}-\d{2}$/)) {
       res.status(400).json({
         success: false,
@@ -231,11 +231,11 @@ export const getCategorySummary = async (req: Request, res: Response, next: Next
       });
       return;
     }
-    
+
     const [year, monthNum] = month.split('-').map(Number);
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0); // Last day of month
-    
+
     // Get all categories for the user
     const categories = await prisma.category.findMany({
       where: {
@@ -255,7 +255,7 @@ export const getCategorySummary = async (req: Request, res: Response, next: Next
         }
       }
     });
-    
+
     // Calculate total spent per category
     interface CategorySummary {
       id: string;
@@ -300,7 +300,7 @@ export const getCategorySummary = async (req: Request, res: Response, next: Next
         status
       };
     });
-    
+
     res.status(200).json({
       success: true,
       month: month,

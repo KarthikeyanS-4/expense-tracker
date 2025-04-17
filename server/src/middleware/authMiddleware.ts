@@ -23,7 +23,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({
         success: false,
@@ -53,10 +53,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       });
       return;
     }
-    
+
     // Attach user to request object
     req.user = { userId: decoded.userId };
-    
+
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

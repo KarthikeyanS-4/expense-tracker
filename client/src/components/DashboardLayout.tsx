@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/mode-toggle";
 import axios from "../api/axios"
-import { useAuth } from "../context/AuthContext"; // You'll need to create this auth hook
+import { useAuth } from "../context/AuthContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -28,11 +28,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     email?: string;
   }
   
-  const [userData, setUserData] = useState<UserData | null>(null); // Placeholder for user data
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { logout } = useAuth(); // Uncomment when you have the auth hook
-
-  // Placeholder user data, replace with actual user data from auth context
+  const { logout } = useAuth();
 
   const fetchCurrentUser = async (token: string) => {
     try {
@@ -53,9 +51,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       fetchCurrentUser(token);
     }
   }, [token]);
-
-  // Usage example:
-  // const userData = await fetchCurrentUser(token);
 
   const user = {
     name: userData?.name || "User",
@@ -81,7 +76,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   ];
 
   const handleLogout = () => {
-    // Implement logout logic here
     logout();
   };
 

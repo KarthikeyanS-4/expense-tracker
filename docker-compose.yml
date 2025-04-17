@@ -1,31 +1,32 @@
-version: '3.8'
-
 services:
-  # Front-end service (e.g., React, Angular, etc.)
+  # Front-end service (React)
   client:
     build:
-      context: ./client  # Path to the front-end Dockerfile
-      dockerfile: Dockerfile # Optional: only needed if the Dockerfile has a different name
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_BASE_URL: http://localhost:5000/api
     container_name: et-client
     ports:
-      - "4173:4173"  # Adjust port as needed
+      - "4173:4173"
     depends_on:
       - server
  
-  # Back-end service (e.g., Node.js, Python, etc.)
+  # Back-end service (Node.js/Express)
   server:
     build:
       context: ./server # Path to the back-end Dockerfile
-      dockerfile: Dockerfile # Optional: only needed if the Dockerfile has a different name
+      dockerfile: Dockerfile
     container_name: et-server
     ports:
-      - "5000:5000"  # Adjust port as needed
+      - "5000:5000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - PORT=${PORT}
     depends_on:
       - postgres
+    command: sh -c "npx prisma db push && npm run start"
 
   # PostgreSQL database service
   postgres:

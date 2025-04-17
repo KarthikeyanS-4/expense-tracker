@@ -27,61 +27,61 @@ const updateExpenseSchema = z.object({
 
 export const getAllExpenses = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { 
-      categoryId, 
-      startDate, 
-      endDate, 
-      page = "1", 
+    const {
+      categoryId,
+      startDate,
+      endDate,
+      page = "1",
       limit = "20",
       sortBy = "date",
       sortOrder = "desc"
     } = req.query;
-    
+
     // Parse pagination parameters
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
-    
+
     // Build filter object
     const filter: any = {
       userId: req.user.userId
     };
-    
+
     // Apply category filter if provided
     if (categoryId && typeof categoryId === 'string') {
       filter.categoryId = categoryId;
     }
-    
+
     // Apply date filters if provided
     if (startDate || endDate) {
       filter.date = {};
-      
+
       if (startDate && typeof startDate === 'string') {
         filter.date.gte = new Date(startDate);
       }
-      
+
       if (endDate && typeof endDate === 'string') {
         filter.date.lte = new Date(endDate);
       }
     }
-    
+
     // Process sort options
     const allowedSortFields = ['date', 'amount', 'title', 'createdAt'];
     const allowedSortOrders = ['asc', 'desc'];
-    
+
     const orderBy: any = {};
-    if (allowedSortFields.includes(sortBy as string) && 
-        allowedSortOrders.includes(sortOrder as string)) {
+    if (allowedSortFields.includes(sortBy as string) &&
+      allowedSortOrders.includes(sortOrder as string)) {
       orderBy[sortBy as string] = sortOrder;
     } else {
       orderBy.date = 'desc';
     }
-    
+
     // Get total count for pagination
     const total = await prisma.expense.count({
       where: filter
     });
-    
+
     // Get expenses with pagination and sorting
     const expenses = await prisma.expense.findMany({
       where: filter,
@@ -97,7 +97,7 @@ export const getAllExpenses = async (req: Request, res: Response, next: NextFunc
       skip,
       take: limitNum
     });
-    
+
     res.status(200).json({
       success: true,
       count: expenses.length,
@@ -117,7 +117,7 @@ export const getAllExpenses = async (req: Request, res: Response, next: NextFunc
 export const getExpenseById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    
+
     const expense = await prisma.expense.findUnique({
       where: {
         id,
@@ -127,7 +127,7 @@ export const getExpenseById = async (req: Request, res: Response, next: NextFunc
         category: true
       }
     });
-    
+
     if (!expense) {
       res.status(404).json({
         success: false,
@@ -135,7 +135,7 @@ export const getExpenseById = async (req: Request, res: Response, next: NextFunc
       });
       return;
     }
-    
+
     res.status(200).json({
       success: true,
       data: expense
@@ -148,7 +148,7 @@ export const getExpenseById = async (req: Request, res: Response, next: NextFunc
 export const createExpense = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validatedData = createExpenseSchema.parse(req.body);
-    
+
     // Check if category exists and belongs to user
     const category = await prisma.category.findUnique({
       where: {
@@ -156,7 +156,7 @@ export const createExpense = async (req: Request, res: Response, next: NextFunct
         userId: req.user.userId
       }
     });
-    
+
     if (!category) {
       res.status(400).json({
         success: false,
@@ -164,7 +164,7 @@ export const createExpense = async (req: Request, res: Response, next: NextFunct
       });
       return;
     }
-    
+
     const expense = await prisma.expense.create({
       data: {
         title: validatedData.title,
@@ -183,7 +183,7 @@ export const createExpense = async (req: Request, res: Response, next: NextFunct
         }
       }
     });
-    
+
     res.status(201).json({
       success: true,
       message: "Expense created successfully",
@@ -198,7 +198,7 @@ export const updateExpense = async (req: Request, res: Response, next: NextFunct
   try {
     const { id } = req.params;
     const validatedData = updateExpenseSchema.parse(req.body);
-    
+
     // Check if expense exists and belongs to user
     const existingExpense = await prisma.expense.findUnique({
       where: {
@@ -206,7 +206,7 @@ export const updateExpense = async (req: Request, res: Response, next: NextFunct
         userId: req.user.userId
       }
     });
-    
+
     if (!existingExpense) {
       res.status(404).json({
         success: false,
@@ -214,7 +214,7 @@ export const updateExpense = async (req: Request, res: Response, next: NextFunct
       });
       return;
     }
-    
+
     // If changing category, check if it exists and belongs to user
     if (validatedData.categoryId) {
       const category = await prisma.category.findUnique({
@@ -223,7 +223,7 @@ export const updateExpense = async (req: Request, res: Response, next: NextFunct
           userId: req.user.userId
         }
       });
-      
+
       if (!category) {
         res.status(400).json({
           success: false,
@@ -232,30 +232,30 @@ export const updateExpense = async (req: Request, res: Response, next: NextFunct
         return;
       }
     }
-    
+
     // Format data for update
     const updateData: any = {};
-    
+
     if (validatedData.title !== undefined) {
       updateData.title = validatedData.title;
     }
-    
+
     if (validatedData.amount !== undefined) {
       updateData.amount = validatedData.amount.toString();
     }
-    
+
     if (validatedData.categoryId !== undefined) {
       updateData.categoryId = validatedData.categoryId;
     }
-    
+
     if (validatedData.date !== undefined) {
       updateData.date = new Date(validatedData.date);
     }
-    
+
     if (validatedData.notes !== undefined) {
       updateData.notes = validatedData.notes;
     }
-    
+
     const expense = await prisma.expense.update({
       where: {
         id,
@@ -271,7 +271,7 @@ export const updateExpense = async (req: Request, res: Response, next: NextFunct
         }
       }
     });
-    
+
     res.status(200).json({
       success: true,
       message: "Expense updated successfully",
@@ -285,7 +285,7 @@ export const updateExpense = async (req: Request, res: Response, next: NextFunct
 export const deleteExpense = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    
+
     // Check if expense exists and belongs to user
     const existingExpense = await prisma.expense.findUnique({
       where: {
@@ -293,7 +293,7 @@ export const deleteExpense = async (req: Request, res: Response, next: NextFunct
         userId: req.user.userId
       }
     });
-    
+
     if (!existingExpense) {
       res.status(404).json({
         success: false,
@@ -301,14 +301,14 @@ export const deleteExpense = async (req: Request, res: Response, next: NextFunct
       });
       return;
     }
-    
+
     await prisma.expense.delete({
       where: {
         id,
         userId: req.user.userId
       }
     });
-    
+
     res.status(200).json({
       success: true,
       message: "Expense deleted successfully"
@@ -321,12 +321,12 @@ export const deleteExpense = async (req: Request, res: Response, next: NextFunct
 export const getExpensesSummary = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { period = 'month' } = req.query;
-    
+
     let dateFormat;
     let groupByField;
     let today = new Date();
     let startDate;
-    
+
     // Set date boundaries based on period
     if (period === 'week') {
       // Last 7 days
@@ -347,7 +347,7 @@ export const getExpensesSummary = async (req: Request, res: Response, next: Next
       dateFormat = '%Y-%m-%d'; // Daily format
       groupByField = 'day';
     }
-    
+
     // Get expenses grouped by category
     const expensesByCategory = await prisma.$queryRaw<any[]>`
       SELECT 
@@ -363,7 +363,7 @@ export const getExpensesSummary = async (req: Request, res: Response, next: Next
       GROUP BY c.id, c.name, c.color
       ORDER BY "totalAmount" DESC
     `;
-    
+
     // Format for pie chart
     interface ExpenseByCategory {
       categoryId: string;
@@ -385,19 +385,19 @@ export const getExpensesSummary = async (req: Request, res: Response, next: Next
       color: item.categoryColor,
       value: parseFloat(item.totalAmount)
     }));
-    
+
     // Calculate total
     const totalExpenses = categoryData.reduce((sum, item) => sum + item.value, 0);
-    
+
     // Add percentage
     const categoryDataWithPercentage = categoryData.map(item => ({
       ...item,
       percentage: Math.round((item.value / totalExpenses) * 100)
     }));
-    
+
     // Get expenses grouped by time period
     let timeSeriesData;
-    
+
     if (groupByField === 'day') {
       // Daily data for week or month view
       timeSeriesData = await prisma.$queryRaw<any[]>`
@@ -425,23 +425,23 @@ export const getExpensesSummary = async (req: Request, res: Response, next: Next
         ORDER BY "period"
       `;
     }
-    
+
     // Format for line chart
     interface RawTimeSeriesData {
-        period: string;
-        amount: string;
+      period: string;
+      amount: string;
     }
 
     interface TimeDataItem {
-        period: string;
-        amount: number;
+      period: string;
+      amount: number;
     }
 
     const timeData: TimeDataItem[] = timeSeriesData.map((item: RawTimeSeriesData) => ({
-        period: item.period,
-        amount: parseFloat(item.amount)
+      period: item.period,
+      amount: parseFloat(item.amount)
     }));
-    
+
     res.status(200).json({
       success: true,
       data: {

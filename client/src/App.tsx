@@ -14,20 +14,19 @@ const App: React.FC = () => {
   return (
 
     <Router>
-    <AuthProvider> {/* Wrap your app with AuthProvider to provide auth context */}
-      {/* You can add a navigation bar or any other components here */}
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <Toaster/>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/signup" element={<AuthPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
-        <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
-      </Routes>
-      </ThemeProvider>
-    </AuthProvider>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/signup" element={<AuthPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+            <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+          </Routes>
+        </ThemeProvider>
+      </AuthProvider>
     </Router>
   );
 };

@@ -110,7 +110,7 @@ interface PaginationInfo {
 
 const Expenses: React.FC = () => {
   const { token } = useAuth();
-  
+
   // State management
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -122,20 +122,20 @@ const Expenses: React.FC = () => {
     totalPages: 1,
   });
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
-  
+
   // Filter state
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
   const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortOrder, setSortOrder] = useState<string>("desc");
-  
+
   // Dialog state
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [currentExpenseId, setCurrentExpenseId] = useState<string | null>(null);
-  
+
   // Form setup
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
@@ -158,7 +158,7 @@ const Expenses: React.FC = () => {
   const fetchExpenses = async (page = 1) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Build query parameters
       const params = new URLSearchParams();
@@ -166,25 +166,25 @@ const Expenses: React.FC = () => {
       params.append("limit", pagination.limit.toString());
       params.append("sortBy", sortBy);
       params.append("sortOrder", sortOrder);
-      
+
       if (filterCategory) {
         params.append("categoryId", filterCategory);
       }
-      
+
       if (filterStartDate) {
         params.append("startDate", format(filterStartDate, "yyyy-MM-dd"));
       }
-      
+
       if (filterEndDate) {
         params.append("endDate", format(filterEndDate, "yyyy-MM-dd"));
       }
-      
+
       const response = await axios.get(`${API_URL}/expenses?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       setExpenses(response.data.data);
       setPagination({
         page: response.data.pagination.page,
@@ -208,7 +208,7 @@ const Expenses: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       setCategories(response.data.data);
     } catch (err: any) {
       console.error("Error fetching categories:", err);
@@ -297,9 +297,9 @@ const Expenses: React.FC = () => {
           },
         }
       );
-      
+
       toast("Expense created successfully");
-      
+
       setDialogOpen(false);
       fetchExpenses(pagination.page);
     } catch (err: any) {
@@ -311,7 +311,7 @@ const Expenses: React.FC = () => {
   // Update expense
   const handleUpdateExpense = async (values: ExpenseFormValues) => {
     if (!currentExpenseId) return;
-    
+
     try {
       await axios.put(
         `${API_URL}/expenses/${currentExpenseId}`,
@@ -325,9 +325,9 @@ const Expenses: React.FC = () => {
           },
         }
       );
-      
+
       toast("Expense updated successfully");
-      
+
       setDialogOpen(false);
       setCurrentExpenseId(null);
       fetchExpenses(pagination.page);
@@ -340,16 +340,16 @@ const Expenses: React.FC = () => {
   // Delete expense
   const handleDeleteExpense = async () => {
     if (!currentExpenseId) return;
-    
+
     try {
       await axios.delete(`${API_URL}/expenses/${currentExpenseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       toast("Expense deleted successfully");
-      
+
       setDeleteDialogOpen(false);
       setCurrentExpenseId(null);
       fetchExpenses(pagination.page);
@@ -379,9 +379,9 @@ const Expenses: React.FC = () => {
   }
 
   // Empty state when no expenses and no filter is applied
-  const showEmptyState = expenses.length === 0 && 
-    !filterCategory && 
-    !filterStartDate && 
+  const showEmptyState = expenses.length === 0 &&
+    !filterCategory &&
+    !filterStartDate &&
     !filterEndDate;
 
   return (
@@ -409,8 +409,8 @@ const Expenses: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="category-filter">Category</Label>
-                <Select 
-                  value={filterCategory} 
+                <Select
+                  value={filterCategory}
                   onValueChange={setFilterCategory}
                 >
                   <SelectTrigger id="category-filter">
@@ -426,7 +426,7 @@ const Expenses: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label htmlFor="start-date-filter">Start Date</Label>
                 <Popover>
@@ -446,7 +446,7 @@ const Expenses: React.FC = () => {
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div>
                 <Label htmlFor="end-date-filter">End Date</Label>
                 <Popover>
@@ -466,7 +466,7 @@ const Expenses: React.FC = () => {
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <div>
                 <Label htmlFor="sort-by">Sort By</Label>
                 <div className="flex space-x-2">
@@ -492,7 +492,7 @@ const Expenses: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2 mt-4">
               <Button variant="outline" onClick={handleResetFilters}>
                 Reset
@@ -598,7 +598,7 @@ const Expenses: React.FC = () => {
                       ))}
                     </TableBody>
                   </Table>
-                  
+
                   {/* Pagination */}
                   {pagination.totalPages > 1 && (
                     <div className="flex justify-center mt-4">
@@ -611,7 +611,7 @@ const Expenses: React.FC = () => {
                         >
                           Previous
                         </Button>
-                        
+
                         {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
                           .filter(page => {
                             // Show current page, first page, last page, and pages around current
@@ -625,7 +625,7 @@ const Expenses: React.FC = () => {
                             // Add ellipsis
                             const showEllipsisBefore = index > 0 && array[index - 1] !== page - 1;
                             const showEllipsisAfter = index < array.length - 1 && array[index + 1] !== page + 1;
-                            
+
                             return (
                               <React.Fragment key={page}>
                                 {showEllipsisBefore && (
@@ -633,7 +633,7 @@ const Expenses: React.FC = () => {
                                     ...
                                   </Button>
                                 )}
-                                
+
                                 <Button
                                   variant={pagination.page === page ? "default" : "outline"}
                                   size="sm"
@@ -641,7 +641,7 @@ const Expenses: React.FC = () => {
                                 >
                                   {page}
                                 </Button>
-                                
+
                                 {showEllipsisAfter && (
                                   <Button variant="outline" size="sm" disabled>
                                     ...
@@ -650,7 +650,7 @@ const Expenses: React.FC = () => {
                               </React.Fragment>
                             );
                           })}
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -675,12 +675,12 @@ const Expenses: React.FC = () => {
           <DialogHeader>
             <DialogTitle>{formMode === "create" ? "Add Expense" : "Edit Expense"}</DialogTitle>
             <DialogDescription>
-              {formMode === "create" 
+              {formMode === "create"
                 ? "Add a new expense to track your spending"
                 : "Update the details of your expense"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -696,7 +696,7 @@ const Expenses: React.FC = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="amount"
@@ -704,11 +704,11 @@ const Expenses: React.FC = () => {
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0.01" 
-                        step="0.01" 
-                        {...field} 
+                      <Input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        {...field}
                         placeholder="0.00"
                       />
                     </FormControl>
@@ -716,7 +716,7 @@ const Expenses: React.FC = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="categoryId"
@@ -741,7 +741,7 @@ const Expenses: React.FC = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="date"
@@ -780,7 +780,7 @@ const Expenses: React.FC = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="notes"
@@ -798,7 +798,7 @@ const Expenses: React.FC = () => {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancel
